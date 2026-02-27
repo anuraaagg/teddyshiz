@@ -11,98 +11,30 @@ struct SpeechBubbleView: View {
       Spacer()  // Push to bottom
 
       if !text.isEmpty {
-        // Chat bubble with tail and glass effect
-        VStack(spacing: 0) {
-          // Main bubble body with glass effect
-          ZStack {
-            // Glassmorphism background with blur
-            BubbleShape()
-              .fill(
-                LinearGradient(
-                  gradient: Gradient(colors: [
-                    Color.white.opacity(0.4),
-                    Color.white.opacity(0.3),
-                  ]),
-                  startPoint: .topLeading,
-                  endPoint: .bottomTrailing
-                )
-              )
-              .background(
-                BubbleShape()
-                  .fill(.ultraThinMaterial)
-              )
-              .overlay(
-                BubbleShape()
-                  .stroke(
-                    LinearGradient(
-                      gradient: Gradient(colors: [
-                        Color.white.opacity(0.8),
-                        Color.white.opacity(0.5),
-                      ]),
-                      startPoint: .topLeading,
-                      endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 2
-                  )
-              )
-              .shadow(color: Color.black.opacity(0.2), radius: 25, x: 0, y: 12)
-              .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
+        // iMessage-style bubble with tail
+        HStack {
+          // Bubble with integrated tail
+          MessageBubbleShape()
+            .fill(
+              Color(red: 0.106, green: 0.557, blue: 1.0)  // iOS blue #1B8EFF
+            )
+            .overlay(
+              Text(displayedText)
+                .font(.system(size: 17, weight: .regular))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.leading)
+                .lineLimit(5)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .padding(.trailing, 8)  // Extra padding for tail area
+            )
+            .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 2)
+            .frame(maxWidth: 280, alignment: .leading)
 
-            // Text content with typing animation
-            Text(displayedText)
-              .font(.system(size: 17, weight: .medium, design: .serif))
-              .foregroundColor(.black.opacity(0.85))  // Dark text for contrast
-              .multilineTextAlignment(.center)
-              .lineLimit(5)
-              .padding(.horizontal, 28)
-              .padding(.vertical, 20)
-          }
-          .frame(maxWidth: .infinity)
-          .frame(minHeight: 70, maxHeight: 150)
-
-          // Tail pointing down to bottom-left - single fluid shape
-          HStack {
-            ZStack {
-              // Glass background
-              TailShape()
-                .fill(.ultraThinMaterial)
-
-              // Gradient overlay
-              TailShape()
-                .fill(
-                  LinearGradient(
-                    gradient: Gradient(colors: [
-                      Color.white.opacity(0.35),
-                      Color.white.opacity(0.15),
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                  )
-                )
-
-              // Border stroke
-              TailShape()
-                .stroke(
-                  LinearGradient(
-                    gradient: Gradient(colors: [
-                      Color.white.opacity(0.7),
-                      Color.white.opacity(0.4),
-                    ]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                  ),
-                  lineWidth: 2
-                )
-            }
-            .frame(width: 32, height: 16)
-            .offset(y: -1)  // Overlap with bubble to merge seamlessly
-            .padding(.leading, 40)  // Position to left
-
-            Spacer()
-          }
+          Spacer()
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 50)  // Position from bottom with safe area
+        .padding(.bottom, 50)
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: text)
         .onAppear {
@@ -134,41 +66,82 @@ struct SpeechBubbleView: View {
   }
 }
 
-// Custom shape for rounded bubble body
-struct BubbleShape: Shape {
+// iMessage-style bubble shape with integrated tail on bottom-left
+struct MessageBubbleShape: Shape {
   func path(in rect: CGRect) -> Path {
     var path = Path()
-    let cornerRadius: CGFloat = 24
+    let cornerRadius: CGFloat = 20
+    let tailWidth: CGFloat = 20
+    let tailHeight: CGFloat = 10
+    let tailPosition: CGFloat = 50  // Distance from left edge
 
-    path.addRoundedRect(in: rect, cornerSize: CGSize(width: cornerRadius, height: cornerRadius))
+    // Start at top-left, moving clockwise
+    path.move(to: CGPoint(x: rect.minX + cornerRadius, y: rect.minY))
 
-    return path
-  }
-}
+    // Top edge
+    path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
 
-// Custom shape for chat bubble tail pointing down - curved and fluid
-struct TailShape: Shape {
-  func path(in rect: CGRect) -> Path {
-    var path = Path()
-
-    // Start from top-left
-    path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-
-    // Curve down to the point (smooth left edge)
-    path.addQuadCurve(
-      to: CGPoint(x: rect.midX, y: rect.maxY),
-      control: CGPoint(x: rect.minX + rect.width * 0.2, y: rect.maxY * 0.6)
+    // Top-right corner
+    path.addArc(
+      center: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY + cornerRadius),
+      radius: cornerRadius,
+      startAngle: Angle(degrees: -90),
+      endAngle: Angle(degrees: 0),
+      clockwise: false
     )
 
-    // Curve back up to top-right (smooth right edge)
-    path.addQuadCurve(
-      to: CGPoint(x: rect.maxX, y: rect.minY),
-      control: CGPoint(x: rect.maxX - rect.width * 0.2, y: rect.maxY * 0.6)
+    // Right edge
+    path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - cornerRadius))
+
+    // Bottom-right corner
+    path.addArc(
+      center: CGPoint(x: rect.maxX - cornerRadius, y: rect.maxY - cornerRadius),
+      radius: cornerRadius,
+      startAngle: Angle(degrees: 0),
+      endAngle: Angle(degrees: 90),
+      clockwise: false
     )
 
-    // Close with a straight line across the top
+    // Bottom edge to tail start
+    path.addLine(to: CGPoint(x: rect.minX + tailPosition + tailWidth, y: rect.maxY))
+
+    // Tail - curves down and to the left
+    path.addQuadCurve(
+      to: CGPoint(x: rect.minX + tailPosition - 5, y: rect.maxY + tailHeight),
+      control: CGPoint(x: rect.minX + tailPosition + tailWidth - 5, y: rect.maxY + 5)
+    )
+
+    // Tail back up
+    path.addQuadCurve(
+      to: CGPoint(x: rect.minX + tailPosition, y: rect.maxY),
+      control: CGPoint(x: rect.minX + tailPosition - 8, y: rect.maxY + tailHeight - 2)
+    )
+
+    // Continue bottom edge to left
+    path.addLine(to: CGPoint(x: rect.minX + cornerRadius, y: rect.maxY))
+
+    // Bottom-left corner
+    path.addArc(
+      center: CGPoint(x: rect.minX + cornerRadius, y: rect.maxY - cornerRadius),
+      radius: cornerRadius,
+      startAngle: Angle(degrees: 90),
+      endAngle: Angle(degrees: 180),
+      clockwise: false
+    )
+
+    // Left edge
+    path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
+
+    // Top-left corner
+    path.addArc(
+      center: CGPoint(x: rect.minX + cornerRadius, y: rect.minY + cornerRadius),
+      radius: cornerRadius,
+      startAngle: Angle(degrees: 180),
+      endAngle: Angle(degrees: 270),
+      clockwise: false
+    )
+
     path.closeSubpath()
-
     return path
   }
 }
@@ -186,6 +159,6 @@ struct TailShape: Shape {
     )
     .ignoresSafeArea()
 
-    SpeechBubbleView(text: "Believe in yourself! I believe in you!")
+    SpeechBubbleView(text: "Your message goes here")
   }
 }
