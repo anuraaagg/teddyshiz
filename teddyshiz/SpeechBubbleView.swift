@@ -96,11 +96,20 @@ struct SpeechBubbleView: View {
         .padding(.bottom, 50)  // Position from bottom with safe area
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: text)
+        .onAppear {
+          // Set initial text when view appears
+          if !text.isEmpty && displayedText.isEmpty {
+            displayedText = text
+          }
+        }
         .onChange(of: text) { _, newText in
           if !newText.isEmpty {
             // Generate new animation ID to cancel previous animation
             animationId = UUID()
             animateTyping()
+          } else {
+            // Clear displayed text when text becomes empty
+            displayedText = ""
           }
         }
       }
