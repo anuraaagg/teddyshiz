@@ -60,34 +60,43 @@ struct SpeechBubbleView: View {
           .frame(maxWidth: .infinity)
           .frame(minHeight: 70, maxHeight: 150)
 
-          // Tail pointing down to bottom-left
+          // Tail pointing down to bottom-left - single fluid shape
           HStack {
-            TailShape()
-              .fill(
-                LinearGradient(
-                  gradient: Gradient(colors: [
-                    Color.white.opacity(0.35),
-                    Color.white.opacity(0.25),
-                  ]),
-                  startPoint: .top,
-                  endPoint: .bottom
-                )
-              )
-              .background(
-                TailShape()
-                  .fill(.ultraThinMaterial)
-              )
-              .overlay(
-                TailShape()
-                  .stroke(
-                    Color.white.opacity(0.6),
-                    lineWidth: 1.5
+            ZStack {
+              // Glass background
+              TailShape()
+                .fill(.ultraThinMaterial)
+
+              // Gradient overlay
+              TailShape()
+                .fill(
+                  LinearGradient(
+                    gradient: Gradient(colors: [
+                      Color.white.opacity(0.35),
+                      Color.white.opacity(0.15),
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
                   )
-              )
-              .frame(width: 28, height: 14)
-              .offset(y: -2)  // Better overlap with bubble
-              .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
-              .padding(.leading, 40)  // Position to left
+                )
+
+              // Border stroke
+              TailShape()
+                .stroke(
+                  LinearGradient(
+                    gradient: Gradient(colors: [
+                      Color.white.opacity(0.7),
+                      Color.white.opacity(0.4),
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                  ),
+                  lineWidth: 2
+                )
+            }
+            .frame(width: 32, height: 16)
+            .offset(y: -1)  // Overlap with bubble to merge seamlessly
+            .padding(.leading, 40)  // Position to left
 
             Spacer()
           }
@@ -137,15 +146,27 @@ struct BubbleShape: Shape {
   }
 }
 
-// Custom shape for chat bubble tail pointing down
+// Custom shape for chat bubble tail pointing down - curved and fluid
 struct TailShape: Shape {
   func path(in rect: CGRect) -> Path {
     var path = Path()
 
-    // Triangle tail pointing downward
-    path.move(to: CGPoint(x: rect.midX - rect.width / 2, y: rect.minY))
-    path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
-    path.addLine(to: CGPoint(x: rect.midX + rect.width / 2, y: rect.minY))
+    // Start from top-left
+    path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+
+    // Curve down to the point (smooth left edge)
+    path.addQuadCurve(
+      to: CGPoint(x: rect.midX, y: rect.maxY),
+      control: CGPoint(x: rect.minX + rect.width * 0.2, y: rect.maxY * 0.6)
+    )
+
+    // Curve back up to top-right (smooth right edge)
+    path.addQuadCurve(
+      to: CGPoint(x: rect.maxX, y: rect.minY),
+      control: CGPoint(x: rect.maxX - rect.width * 0.2, y: rect.maxY * 0.6)
+    )
+
+    // Close with a straight line across the top
     path.closeSubpath()
 
     return path
