@@ -6,9 +6,8 @@ struct ContentView: View {
   @StateObject private var timeController = TimeController()
 
   // Long press tracking for screen-wide time change
-  @State private var longPressStartTime: Date?
-  @State private var longPressLocation: CGPoint?
-  @State private var longPressActive = false
+  @GestureState private var isLongPressing = false
+  @State private var longPressLocation: CGPoint = .zero
 
   var body: some View {
     ZStack {
@@ -166,49 +165,24 @@ struct ContentView: View {
       .ignoresSafeArea()
       .allowsHitTesting(false)
     }
-    // Screen-wide long press gesture for time change
+    // Screen-wide long press gesture for time change (doesn't interfere with drag)
+    .onLongPressGesture(minimumDuration: 2.0, maximumDistance: 20) {
+      // Long press succeeded
+      print("⏰ Long press triggered at \(longPressLocation)")
+      appState.startLongPress(at: longPressLocation)
+    } onPressingChanged: { isPressing in
+      if isPressing {
+        print("⏰ Long press started...")
+      } else {
+        print("⏰ Long press ended/cancelled")
+      }
+    }
+    // Capture tap location with a simultaneous gesture that doesn't interfere
     .simultaneousGesture(
-      DragGesture(minimumDistance: 5)  // Small movement allowed (5pt)
+      DragGesture(minimumDistance: 0)
         .onChanged { value in
-          // Start long press tracking on first touch
-          if longPressStartTime == nil {
-            longPressStartTime = Date()
-            longPressLocation = value.startLocation
-            print("⏰ Touch started, tracking for long press...")
-          }
-
-          // Check if 2 seconds have passed and finger hasn't moved much
-          if let startTime = longPressStartTime,
-             let startLoc = longPressLocation,
-             !longPressActive {
-
-            let duration = Date().timeIntervalSince(startTime)
-            let distance = hypot(value.location.x - startLoc.x, value.location.y - startLoc.y)
-
-            // Only trigger if held still (< 15pt movement) for 2+ seconds
-            if duration >= 2.0 && distance < 15 {
-              longPressActive = true
-              appState.startLongPress(at: startLoc)
-              print("⏰ Long press triggered after \(duration)s")
-            } else if duration > 2.0 && distance >= 15 {
-              // Moved too much, cancel
-              print("⏰ Cancelled - moved \(distance)pt")
-              longPressStartTime = nil
-              longPressLocation = nil
-            }
-          }
-        }
-        .onEnded { _ in
-          // Reset state
-          if !longPressActive && longPressStartTime != nil {
-            print("⏰ Long press cancelled - touch ended too soon")
-            appState.cancelLongPress()
-          }
-          if longPressActive {
-            longPressActive = false
-          }
-          longPressStartTime = nil
-          longPressLocation = nil
+          // Just capture the initial location, don't interfere with drag
+          longPressLocation = value.startLocation
         }
     )
     .onAppear {

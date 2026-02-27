@@ -51,7 +51,7 @@ struct SpeechBubbleView: View {
             // Text content with typing animation
             Text(displayedText)
               .font(.system(size: 17, weight: .medium, design: .serif))
-              .foregroundColor(.primary.opacity(0.95))
+              .foregroundColor(.black.opacity(0.85))  // Dark text for contrast
               .multilineTextAlignment(.center)
               .lineLimit(5)
               .padding(.horizontal, 28)
