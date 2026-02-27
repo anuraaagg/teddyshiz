@@ -12,29 +12,28 @@ struct SpeechBubbleView: View {
 
       if !text.isEmpty {
         // iMessage-style bubble with tail
-        HStack {
+        HStack(alignment: .bottom) {
           // Bubble with integrated tail
-          MessageBubbleShape()
-            .fill(
-              Color(red: 0.106, green: 0.557, blue: 1.0)  // iOS blue #1B8EFF
+          Text(displayedText)
+            .font(.system(size: 15, weight: .regular))
+            .foregroundColor(.black.opacity(0.9))
+            .multilineTextAlignment(.leading)
+            .lineLimit(4)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .padding(.trailing, 6)  // Extra padding for tail area
+            .background(
+              MessageBubbleShape()
+                .fill(Color.white)
             )
-            .overlay(
-              Text(displayedText)
-                .font(.system(size: 17, weight: .regular))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.leading)
-                .lineLimit(5)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .padding(.trailing, 8)  // Extra padding for tail area
-            )
-            .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 2)
-            .frame(maxWidth: 280, alignment: .leading)
+            .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 2)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: 240)
 
           Spacer()
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 50)
+        .padding(.bottom, 80)
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: text)
         .onAppear {

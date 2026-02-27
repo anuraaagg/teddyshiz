@@ -269,30 +269,14 @@ class TeddyAppState: ObservableObject {
         // Store the tap location for later
         longPressStartLocation = location
 
-        print("⏰ Long press started at \(location) - hold for 2s to change time")
+        print("⏰ Long press detected at \(location) - showing time picker")
         isGlowFlares = true
 
-        longPressTask = Task {
-            // Wait for 2 seconds with haptic feedback
-            for i in 1...2 {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                guard !Task.isCancelled else { return }
+        // Single haptic feedback on long press
+        HapticController.shared.playSqueak()
 
-                // Pulse haptic feedback every second
-                await MainActor.run {
-                    HapticController.shared.playSqueak()
-                }
-
-                print("⏰ Long press: \(i)s / 2s")
-            }
-
-            // Successfully held for 2 seconds - trigger time change!
-            guard !Task.isCancelled else { return }
-
-            await MainActor.run {
-                triggerTimeChange()
-            }
-        }
+        // Immediately trigger time change (gesture already handled the 0.5s delay)
+        triggerTimeChange()
     }
 
     func cancelLongPress() {

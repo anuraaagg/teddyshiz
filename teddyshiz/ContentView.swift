@@ -165,8 +165,8 @@ struct ContentView: View {
       .ignoresSafeArea()
       .allowsHitTesting(false)
     }
-    // Screen-wide long press gesture for time change (doesn't interfere with drag)
-    .onLongPressGesture(minimumDuration: 2.0, maximumDistance: 20) {
+    // Screen-wide long press gesture for time change (iOS default duration like iMessage reactions)
+    .onLongPressGesture(minimumDuration: 0.5, maximumDistance: 20) {
       // Long press succeeded
       print("⏰ Long press triggered at \(longPressLocation)")
       appState.startLongPress(at: longPressLocation)
