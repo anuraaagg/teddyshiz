@@ -11,26 +11,21 @@ struct SpeechBubbleView: View {
       Spacer()  // Push to bottom
 
       if !text.isEmpty {
-        // iMessage-style bubble with tail
-        HStack(alignment: .bottom) {
-          // Bubble with integrated tail
+        // iMessage-style bubble with tail - centered and full width
+        VStack {
           Text(displayedText)
             .font(.system(size: 15, weight: .regular))
             .foregroundColor(.black.opacity(0.9))
-            .multilineTextAlignment(.leading)
+            .multilineTextAlignment(.center)
             .lineLimit(4)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .padding(.trailing, 6)  // Extra padding for tail area
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
             .background(
               MessageBubbleShape()
                 .fill(Color.white)
             )
             .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 2)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: 240)
-
-          Spacer()
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 80)
